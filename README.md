@@ -15,7 +15,7 @@ https://github.com/rluceropdx/nest-egg-planner
 
 # Project Objectives
 Develop a "clicker-style" simulator but with a focus on building retirement savings. I intend to keep some things simple (having only 1 or 2 accounts) but extend the range of simulated events such as:
-- RMD's (Required Minimum Distributions)
+- RMD's (Required Minimum Distributions). IRS forced withdrawals starting at age 75 for those born 1960 or after.
 - Roth vs Tax-Advantaged accounts
 - Tax Calculation (married filing jointly, single, having dependents)
 - Incorporate an average of expenses and the effects inflation
