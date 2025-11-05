@@ -1,3 +1,6 @@
+/// ChatGPT provided example of websocket server
+/// Prompt: Rust websocket server example
+
 use futures::{SinkExt, StreamExt};
 use warp::Filter;
 
