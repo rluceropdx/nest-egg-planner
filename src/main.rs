@@ -1,8 +1,16 @@
 /// ChatGPT provided example of websocket server
 /// Prompt: Rust websocket server example
-
 use futures::{SinkExt, StreamExt};
+use serde::{Deserialize, Serialize};
+use serde_json::json;
 use warp::Filter;
+use warp::ws::Message;
+
+#[derive(Debug, Deserialize, Serialize)]
+struct ClientMessage {
+    action: String,
+    value: Option<String>,
+}
 
 #[tokio::main]
 async fn main() {
@@ -30,6 +38,26 @@ async fn handle_connection(websocket: warp::ws::WebSocket) {
                 if msg.is_text() {
                     let text = msg.to_str().unwrap_or("");
                     println!("Received: {}", text);
+
+                    // Try to parse JSON
+                    match serde_json::from_str::<ClientMessage>(text) {
+                        Ok(parsed) => {
+                            println!("Parsed JSON: {:?}", parsed);
+
+                            // Example response
+                            let response = json!({
+                                "status": "ok",
+                                "echo": parsed,
+                            });
+                            let response_text = serde_json::to_string(&response).unwrap();
+                            tx.send(Message::text(response_text)).await.ok();
+                        }
+                        Err(err) => {
+                            eprintln!("JSON parse error: {}", err);
+                            let err_msg = json!({ "error": "invalid JSON" });
+                            tx.send(Message::text(err_msg.to_string())).await.ok();
+                        }
+                    }
 
                     // Echo back the same message
                     if let Err(e) = tx
