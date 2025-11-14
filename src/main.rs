@@ -476,11 +476,11 @@ async fn handle_connection(websocket: warp::ws::WebSocket) {
                                 let mut return_data = Simulation { processed: vec![] };
 
                                 let mut calc_age = parsed.age;
-                                let mut calc_savings: usize = parsed.current_savings;
+                                let mut calc_savings: usize = 0;
                                 let mut sp_index = 0;
                                 for i in CURRENT_YEAR..=end_year {
-                                    calc_savings = calc_savings
-                                        + (parsed.current_savings as f32
+                                    calc_savings += parsed.current_savings
+                                        + (calc_savings as f32
                                             * sp_500_historical.get(sp_index).unwrap().total_return
                                             * 0.01)
                                             as usize;
