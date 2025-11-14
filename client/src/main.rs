@@ -1,6 +1,6 @@
 /// ChatGPT provided example of websocket client
 /// Prompt: basic html javascript websocket client
-/// 
+///
 use warp::Filter;
 
 #[tokio::main]
@@ -37,7 +37,7 @@ async fn main() {
 
     <div class="row">
       <label for="url">Server URL</label>
-      <input id="url" type="text" value="wss://echo.websocket.events" class="grow" />
+      <input id="url" type="text" value="ws://127.0.0.1:3030/ws" class="grow" />
       <button id="connectBtn">Connect</button>
       <button id="disconnectBtn" class="secondary" disabled>Disconnect</button>
     </div>
@@ -83,6 +83,17 @@ async fn main() {
       const el = document.createElement('div');
       el.className = 'msg ' + (kind === 'incoming' ? 'incoming' : kind === 'outgoing' ? 'outgoing' : 'system');
       const time = new Date().toLocaleTimeString();
+
+      try {
+        const serverData = JSON.parse(text);
+        if (serverData.hasOwnProperty('result')) {
+          console.log('serverData result', serverData.result);
+        }
+      } catch (e) {
+        console.log('error parsing json', e);
+      }
+
+
       el.innerHTML = `<div class="meta">${time} — ${kind.toUpperCase()}</div><div>${escapeHtml(text)}</div>`;
       logEl.appendChild(el);
       logEl.scrollTop = logEl.scrollHeight;
@@ -136,7 +147,7 @@ async fn main() {
               };
               reader.readAsArrayBuffer(event.data);
             } else {
-              addLog('[binary] ' + bufferPreview(event.data), 'incoming');
+              addLog('[binary] ' + bufferPreview(event.data), 'incoming3');
             }
           }
         });
