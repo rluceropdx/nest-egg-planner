@@ -12,8 +12,8 @@ use warp::ws::Message;
 struct ClientData {
     age: u16,
     current_savings: isize,
-    current_salary: u16,
-    retirement_expenses: u16,
+    current_salary: u32,
+    retirement_expenses: u32,
     action: String,
     value: Option<String>,
 }
@@ -23,7 +23,8 @@ struct YearlyData {
     year: u16,
     age: u16,
     savings: isize,
-    ss_payment: usize,
+    ss_payment: isize,
+    rmd_withdrawal: isize,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -69,26 +70,73 @@ async fn random_sp_500_historical() -> f32 {
 }
 
 /// incorporate social security payment estimate (very rough)
-async fn add_ss_payment(age: u16, salary: u16) -> f32 {
-    let result = if age < 67 {
-        0
-    } else {
-        let find = match salary {
+async fn add_ss_payment(age: u16, salary: u32) -> isize {
+    let mut result = 0;
+
+    if age > 67 {
+        let annual_payment = match salary {
             50000 => 1300 * 12,
-            10000 => 2500 * 12,
+            60000 => 1540 * 12,
+            70000 => 1780 * 12,
+            80000 => 2020 * 12,
+            90000 => 2260 * 12,
+            100000 => 2500 * 12,
             _ => 0,
         };
-        find
+        result = annual_payment
     };
 
-    result as f32
+    result as isize
 }
 
 /// subtract expenses during retirement years
-async fn subtract_retirement_expenses(age: u16, retirement_expenses: u16) -> f32 {
-    let result = if age < 67 { 0 } else { retirement_expenses };
+async fn subtract_retirement_expenses(age: u16, retirement_expenses: u32) -> isize {
+    let mut result = 0;
 
-    result as f32
+    if age > 67 {
+        result = retirement_expenses
+    };
+
+    result as isize
+}
+
+async fn calc_required_minimum_distribution(age: u16, current_savings: isize) -> isize {
+    if current_savings < 0 {
+        return 0;
+    }
+
+    let rmd = match age {
+        73 => (current_savings * 3 / 4) as f32 / 26.5,
+        74 => (current_savings * 3 / 4) as f32 / 25.5,
+        75 => (current_savings * 3 / 4) as f32 / 24.6,
+        76 => (current_savings * 3 / 4) as f32 / 23.7,
+        77 => (current_savings * 3 / 4) as f32 / 22.9,
+        78 => (current_savings * 3 / 4) as f32 / 22.0,
+        79 => (current_savings * 3 / 4) as f32 / 21.1,
+        80 => (current_savings * 3 / 4) as f32 / 20.2,
+        81 => (current_savings * 3 / 4) as f32 / 19.4,
+        82 => (current_savings * 3 / 4) as f32 / 18.5,
+        83 => (current_savings * 3 / 4) as f32 / 17.7,
+        84 => (current_savings * 3 / 4) as f32 / 16.8,
+        85 => (current_savings * 3 / 4) as f32 / 16.0,
+        86 => (current_savings * 3 / 4) as f32 / 15.2,
+        87 => (current_savings * 3 / 4) as f32 / 14.4,
+        88 => (current_savings * 3 / 4) as f32 / 13.7,
+        89 => (current_savings * 3 / 4) as f32 / 12.9,
+        90 => (current_savings * 3 / 4) as f32 / 12.2,
+        91 => (current_savings * 3 / 4) as f32 / 11.5,
+        92 => (current_savings * 3 / 4) as f32 / 10.8,
+        93 => (current_savings * 3 / 4) as f32 / 10.1,
+        94 => (current_savings * 3 / 4) as f32 / 9.5,
+        95 => (current_savings * 3 / 4) as f32 / 8.9,
+        96 => (current_savings * 3 / 4) as f32 / 8.4,
+        97 => (current_savings * 3 / 4) as f32 / 12.0,
+        98 => (current_savings * 3 / 4) as f32 / 11.4,
+        99 => (current_savings * 3 / 4) as f32 / 10.8,
+        _ => 0 as f32,
+    };
+
+    rmd as isize
 }
 
 async fn handle_connection(websocket: warp::ws::WebSocket) {
@@ -120,28 +168,32 @@ async fn handle_connection(websocket: warp::ws::WebSocket) {
                                 let mut calc_age = parsed.age;
                                 let mut calc_savings: isize = 0;
                                 for i in CURRENT_YEAR..=end_year {
-                                    let ss_payment = add_ss_payment(calc_age, parsed.current_salary)
-                                        .await
-                                        as isize;
+                                    let ss_payment =
+                                        add_ss_payment(calc_age, parsed.current_salary).await;
 
                                     let retirement_exp = subtract_retirement_expenses(
                                         calc_age,
                                         parsed.retirement_expenses,
                                     )
-                                    .await
-                                        as isize;
+                                    .await;
+
+                                    let rmd =
+                                        calc_required_minimum_distribution(calc_age, calc_savings)
+                                            .await;
 
                                     let sp500 = random_sp_500_historical().await * 0.01;
                                     calc_savings += parsed.current_savings
                                         + (calc_savings as f32 * sp500) as isize
                                         + ss_payment
-                                        - retirement_exp;
+                                        - retirement_exp
+                                        - rmd;
 
                                     let data = YearlyData {
                                         year: i,
                                         age: calc_age,
                                         savings: calc_savings,
-                                        ss_payment: ss_payment as usize,
+                                        ss_payment: ss_payment,
+                                        rmd_withdrawal: rmd,
                                     };
                                     return_data.processed.push(data);
 
