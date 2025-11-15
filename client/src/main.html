@@ -5,6 +5,7 @@
     <meta charset="utf-8" />
     <title>Basic WebSocket Client</title>
     <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
     <style>
         body {
             font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
@@ -124,20 +125,91 @@
         </div>
 
         <div class="row">
-            <textarea id="message" rows="3" class="grow"
-                placeholder="Type a message (or JSON) and press Send"></textarea>
+            <textarea id="message" rows="3" class="grow" placeholder="Type a message (or JSON) and press Send">
+{"action":"simulate", "age":47, "current_savings":10000, "current_salary":50000, "retirement_expenses":45000}            
+            </textarea>
             <button id="sendBtn" disabled>Send</button>
         </div>
+
 
         <div class="row">
             <label>Status:</label>
             <div id="status" class="meta">Disconnected</div>
         </div>
 
+        <h2>Nest Egg Planner/Simulation</h2>
+
+        <svg id="chart" width="600" height="300"></svg>
+
         <div id="log" aria-live="polite"></div>
+
+
+
     </div>
 
     <script>
+        // const server_data = { "results": { "processed": [{ "age": 47, "expenses": 0, "rmd_withdrawal": 0, "savings": 10000, "ss_payment": 0, "year": 2025 }, { "age": 48, "expenses": 0, "rmd_withdrawal": 0, "savings": 20656, "ss_payment": 0, "year": 2026 }, { "age": 49, "expenses": 0, "rmd_withdrawal": 0, "savings": 33611, "ss_payment": 0, "year": 2027 }, { "age": 50, "expenses": 0, "rmd_withdrawal": 0, "savings": 45261, "ss_payment": 0, "year": 2028 }, { "age": 51, "expenses": 0, "rmd_withdrawal": 0, "savings": 53279, "ss_payment": 0, "year": 2029 }, { "age": 52, "expenses": 0, "rmd_withdrawal": 0, "savings": 75426, "ss_payment": 0, "year": 2030 }, { "age": 53, "expenses": 0, "rmd_withdrawal": 0, "savings": 90373, "ss_payment": 0, "year": 2031 }, { "age": 54, "expenses": 0, "rmd_withdrawal": 0, "savings": 117001, "ss_payment": 0, "year": 2032 }, { "age": 55, "expenses": 0, "rmd_withdrawal": 0, "savings": 141567, "ss_payment": 0, "year": 2033 }, { "age": 56, "expenses": 0, "rmd_withdrawal": 0, "savings": 158999, "ss_payment": 0, "year": 2034 }, { "age": 57, "expenses": 0, "rmd_withdrawal": 0, "savings": 177346, "ss_payment": 0, "year": 2035 }, { "age": 58, "expenses": 0, "rmd_withdrawal": 0, "savings": 283095, "ss_payment": 0, "year": 2036 }, { "age": 59, "expenses": 0, "rmd_withdrawal": 0, "savings": 337795, "ss_payment": 0, "year": 2037 }, { "age": 60, "expenses": 0, "rmd_withdrawal": 0, "savings": 457308, "ss_payment": 0, "year": 2038 }, { "age": 61, "expenses": 0, "rmd_withdrawal": 0, "savings": 353439, "ss_payment": 0, "year": 2039 }, { "age": 62, "expenses": 0, "rmd_withdrawal": 0, "savings": 549418, "ss_payment": 0, "year": 2040 }, { "age": 63, "expenses": 0, "rmd_withdrawal": 0, "savings": 588262, "ss_payment": 0, "year": 2041 }, { "age": 64, "expenses": 0, "rmd_withdrawal": 0, "savings": 745445, "ss_payment": 0, "year": 2042 }, { "age": 65, "expenses": 0, "rmd_withdrawal": 0, "savings": 907068, "ss_payment": 0, "year": 2043 }, { "age": 66, "expenses": 0, "rmd_withdrawal": 0, "savings": 716606, "ss_payment": 0, "year": 2044 }, { "age": 67, "expenses": 0, "rmd_withdrawal": 0, "savings": 805862, "ss_payment": 0, "year": 2045 }, { "age": 68, "expenses": 45000, "rmd_withdrawal": 0, "savings": 1042000, "ss_payment": 15600, "year": 2046 }, { "age": 69, "expenses": 45000, "rmd_withdrawal": 0, "savings": 1137845, "ss_payment": 15600, "year": 2047 }, { "age": 70, "expenses": 45000, "rmd_withdrawal": 0, "savings": 1443641, "ss_payment": 15600, "year": 2048 }, { "age": 71, "expenses": 45000, "rmd_withdrawal": 0, "savings": 1514757, "ss_payment": 15600, "year": 2049 }, { "age": 72, "expenses": 45000, "rmd_withdrawal": 0, "savings": 1973414, "ss_payment": 15600, "year": 2050 }, { "age": 73, "expenses": -10851, "rmd_withdrawal": 55851, "savings": 2612344, "ss_payment": 15600, "year": 2051 }, { "age": 74, "expenses": -31833, "rmd_withdrawal": 76833, "savings": 2756737, "ss_payment": 15600, "year": 2052 }, { "age": 75, "expenses": -39046, "rmd_withdrawal": 84046, "savings": 3370283, "ss_payment": 15600, "year": 2053 }, { "age": 76, "expenses": -61654, "rmd_withdrawal": 106654, "savings": 4236930, "ss_payment": 15600, "year": 2054 }, { "age": 77, "expenses": -93764, "rmd_withdrawal": 138764, "savings": 4823834, "ss_payment": 15600, "year": 2055 }, { "age": 78, "expenses": -119448, "rmd_withdrawal": 164448, "savings": 5069744, "ss_payment": 15600, "year": 2056 }, { "age": 79, "expenses": -135204, "rmd_withdrawal": 180204, "savings": 6741610, "ss_payment": 15600, "year": 2057 }, { "age": 80, "expenses": -205307, "rmd_withdrawal": 250307, "savings": 6426928, "ss_payment": 15600, "year": 2058 }, { "age": 81, "expenses": -203463, "rmd_withdrawal": 248463, "savings": 8244343, "ss_payment": 15600, "year": 2059 }, { "age": 82, "expenses": -289230, "rmd_withdrawal": 334230, "savings": 9959552, "ss_payment": 15600, "year": 2060 }, { "age": 83, "expenses": -377014, "rmd_withdrawal": 422014, "savings": 9101558, "ss_payment": 15600, "year": 2061 }, { "age": 84, "expenses": -361319, "rmd_withdrawal": 406319, "savings": 13996089, "ss_payment": 15600, "year": 2062 }, { "age": 85, "expenses": -611066, "rmd_withdrawal": 656066, "savings": 18412049, "ss_payment": 15600, "year": 2063 }, { "age": 86, "expenses": -863489, "rmd_withdrawal": 908489, "savings": 24231109, "ss_payment": 15600, "year": 2064 }, { "age": 87, "expenses": -1217037, "rmd_withdrawal": 1262037, "savings": 33041524, "ss_payment": 15600, "year": 2065 }, { "age": 88, "expenses": -1763842, "rmd_withdrawal": 1808842, "savings": 42498433, "ss_payment": 15600, "year": 2066 }, { "age": 89, "expenses": -2425839, "rmd_withdrawal": 2470839, "savings": 47561845, "ss_payment": 15600, "year": 2067 }, { "age": 90, "expenses": -2878884, "rmd_withdrawal": 2923884, "savings": 43390297, "ss_payment": 15600, "year": 2068 }, { "age": 91, "expenses": -2784802, "rmd_withdrawal": 2829802, "savings": 39817232, "ss_payment": 15600, "year": 2069 }, { "age": 92, "expenses": -2720085, "rmd_withdrawal": 2765085, "savings": 50504685, "ss_payment": 15600, "year": 2070 }, { "age": 93, "expenses": -3705347, "rmd_withdrawal": 3750347, "savings": 77752765, "ss_payment": 15600, "year": 2071 }, { "age": 94, "expenses": -6093376, "rmd_withdrawal": 6138376, "savings": 72150717, "ss_payment": 15600, "year": 2072 }, { "age": 95, "expenses": -6035116, "rmd_withdrawal": 6080116, "savings": 73653697, "ss_payment": 15600, "year": 2073 }, { "age": 96, "expenses": -6531223, "rmd_withdrawal": 6576223, "savings": 97512823, "ss_payment": 15600, "year": 2074 }, { "age": 97, "expenses": -6049551, "rmd_withdrawal": 6094551, "savings": 102612846, "ss_payment": 15600, "year": 2075 }, { "age": 98, "expenses": -6705845, "rmd_withdrawal": 6750845, "savings": 132053594, "ss_payment": 15600, "year": 2076 }, { "age": 99, "expenses": -9125388, "rmd_withdrawal": 9170388, "savings": 169775106, "ss_payment": 15600, "year": 2077 }] }, "status": "simulation completed" };
+        // const processed_data = server_data['results']['processed'];
+        // drawChart(processed_data);
+
+        function drawChart(data) {
+            const svg = d3.select("#chart");
+            const width = +svg.attr("width");
+            const height = +svg.attr("height");
+            const margin = { top: 20, right: 30, bottom: 30, left: 80 };
+
+            // Scales
+            const x = d3.scaleLinear()
+                .domain([d3.min(data, d => d.age), d3.max(data, d => d.age)])
+                .range([margin.left, width - margin.right]);
+
+            const y = d3.scaleLinear()
+                .domain([0, d3.max(data, d => d.savings)])
+                .range([height - margin.bottom, margin.top]);
+
+            // Line generator
+            const line = d3.line()
+                .x(d => x(d.age))
+                .y(d => y(d.savings));
+
+            // Draw axes
+            svg.append("g")
+                .attr("transform", `translate(0,${height - margin.bottom})`)
+                .call(d3.axisBottom(x).ticks(5)); // .tickFormat(d => Number.isInteger(d) ? d : ""));
+
+            svg.append("g")
+                .attr("transform", `translate(${margin.left},0)`)
+                .call(d3.axisLeft(y));
+
+            // Draw line
+            svg.append("path")
+                .datum(data)
+                .attr("fill", "none")
+                .attr("stroke", "steelblue")
+                .attr("stroke-width", 2)
+                .attr("d", line);
+
+            // Slow-draw animation
+            const totalLength = path.node().getTotalLength();
+
+            path
+                .attr("stroke-dasharray", totalLength + " " + totalLength)
+                .attr("stroke-dashoffset", totalLength)
+                .transition()
+                .duration(10000)   // 🎬 3 seconds — adjust speed here
+                .ease(d3.easeLinear)
+                .attr("stroke-dashoffset", 0);
+
+        }
+
+        function redraw(data) {
+            const svg = d3.select("#chart");
+            svg.selectAll("*").remove();   // ❗ Clear entire chart
+
+            drawChart(data);               // Re-run your chart drawing function
+        }
+
+
         // Elements
         const urlInput = document.getElementById('url');
         const protocolInput = document.getElementById('protocol');
@@ -207,6 +279,15 @@
                 });
 
                 ws.addEventListener('message', (event) => {
+                    try {
+                        const server_data = JSON.parse(event.data)
+                        if (server_data.hasOwnProperty('status') && server_data.status == "simulation completed") {
+                            redraw(server_data.results.processed);
+                        }
+                    } catch (e) {
+                        console.log('error parsing event.data', e)
+                    }
+
                     // Distinguish text vs binary
                     if (typeof event.data === 'string') {
                         addLog(event.data, 'incoming');

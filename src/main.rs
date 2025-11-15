@@ -24,6 +24,7 @@ struct YearlyData {
     age: u16,
     savings: isize,
     ss_payment: isize,
+    expenses: isize,
     rmd_withdrawal: isize,
 }
 
@@ -185,7 +186,7 @@ async fn handle_connection(websocket: warp::ws::WebSocket) {
                                     calc_savings += parsed.current_savings
                                         + (calc_savings as f32 * sp500) as isize
                                         + ss_payment
-                                        - retirement_exp
+                                        - (retirement_exp - rmd)
                                         - rmd;
 
                                     let data = YearlyData {
@@ -193,6 +194,7 @@ async fn handle_connection(websocket: warp::ws::WebSocket) {
                                         age: calc_age,
                                         savings: calc_savings,
                                         ss_payment: ss_payment,
+                                        expenses: (retirement_exp - rmd),
                                         rmd_withdrawal: rmd,
                                     };
                                     return_data.processed.push(data);
