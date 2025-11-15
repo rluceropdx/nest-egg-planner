@@ -2,7 +2,7 @@
 /// Prompt: Rust websocket server example
 use futures::{SinkExt, StreamExt};
 use rand::rng;
-use rand::seq::SliceRandom;
+use rand::seq::IndexedRandom;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use warp::Filter;
@@ -11,8 +11,9 @@ use warp::ws::Message;
 #[derive(Debug, Deserialize, Serialize)]
 struct ClientData {
     age: u16,
-    current_savings: usize,
-
+    current_savings: isize,
+    current_salary: u16,
+    retirement_expenses: u16,
     action: String,
     value: Option<String>,
 }
@@ -21,7 +22,8 @@ struct ClientData {
 struct YearlyData {
     year: u16,
     age: u16,
-    savings: usize,
+    savings: isize,
+    ss_payment: usize,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -46,8 +48,10 @@ async fn main() {
 const MAX_AGE: u8 = 99;
 const CURRENT_YEAR: u16 = 2025;
 
-async fn shuffle_sp_500_historical() -> Vec<f32> {
-    let mut sp_500_historical: Vec<f32> = vec![
+/// shuffle the performance returns for the last 99 years of the S&P 500
+async fn random_sp_500_historical() -> f32 {
+    // S&P 500 Performance from years 2024 - 1926 descending
+    let sp_500_historical: Vec<f32> = vec![
         25.02, 26.29, -18.11, 28.71, 18.40, 31.49, -4.38, 21.83, 11.96, 1.38, 13.69, 32.39, 16.00,
         2.11, 15.06, 26.46, -37.00, 5.49, 15.79, 4.91, 10.88, 28.68, -22.10, -11.89, -9.10, 21.04,
         28.58, 33.36, 22.96, 37.58, 1.32, 10.08, 7.62, 30.47, -3.10, 31.69, 16.61, 5.25, 18.67,
@@ -58,8 +62,33 @@ async fn shuffle_sp_500_historical() -> Vec<f32> {
         -1.44, 53.99, -8.19, -43.34, -24.90, -8.42, 43.61, 37.49, 11.62,
     ];
 
-    sp_500_historical.shuffle(&mut rng());
-    sp_500_historical
+    let mut random_num = rng();
+    let item = sp_500_historical.choose(&mut random_num);
+
+    *item.unwrap()
+}
+
+/// incorporate social security payment estimate (very rough)
+async fn add_ss_payment(age: u16, salary: u16) -> f32 {
+    let result = if age < 67 {
+        0
+    } else {
+        let find = match salary {
+            50000 => 1300 * 12,
+            10000 => 2500 * 12,
+            _ => 0,
+        };
+        find
+    };
+
+    result as f32
+}
+
+/// subtract expenses during retirement years
+async fn subtract_retirement_expenses(age: u16, retirement_expenses: u16) -> f32 {
+    let result = if age < 67 { 0 } else { retirement_expenses };
+
+    result as f32
 }
 
 async fn handle_connection(websocket: warp::ws::WebSocket) {
@@ -89,17 +118,30 @@ async fn handle_connection(websocket: warp::ws::WebSocket) {
                                 let mut return_data = Simulation { processed: vec![] };
 
                                 let mut calc_age = parsed.age;
-                                let mut calc_savings: usize = 0;
+                                let mut calc_savings: isize = 0;
                                 for i in CURRENT_YEAR..=end_year {
-                                    let sp500 = shuffle_sp_500_historical().await;
+                                    let ss_payment = add_ss_payment(calc_age, parsed.current_salary)
+                                        .await
+                                        as isize;
+
+                                    let retirement_exp = subtract_retirement_expenses(
+                                        calc_age,
+                                        parsed.retirement_expenses,
+                                    )
+                                    .await
+                                        as isize;
+
+                                    let sp500 = random_sp_500_historical().await * 0.01;
                                     calc_savings += parsed.current_savings
-                                        + (calc_savings as f32 * sp500.first().unwrap() * 0.01)
-                                            as usize;
+                                        + (calc_savings as f32 * sp500) as isize
+                                        + ss_payment
+                                        - retirement_exp;
 
                                     let data = YearlyData {
                                         year: i,
                                         age: calc_age,
                                         savings: calc_savings,
+                                        ss_payment: ss_payment as usize,
                                     };
                                     return_data.processed.push(data);
 
