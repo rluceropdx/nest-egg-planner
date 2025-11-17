@@ -100,22 +100,22 @@
 
         <div class="row">
             <label>Age</label>
-            <input type="text" id="age" value="35">
+            <input type="text" id="age" value="35" class="input_field">
         </div>
 
         <div class="row">
             <label>Annual Savings (whole dollars)</label>
-            <input type="text" id="current_savings" value="5000">
+            <input type="text" id="current_savings" value="5000" class="input_field">
         </div>
 
         <div class="row">
             <label>Annual Salary (whole dollars)</label>
-            <input type="text" id="current_salary" value="75000">
+            <input type="text" id="current_salary" value="75000" class="input_field">
         </div>
 
         <div class="row">
             <label>Expenses During Retirement (whole dollars)</label>
-            <input type="text" id="retirement_expenses" value="45000">
+            <input type="text" id="retirement_expenses" value="45000" class="input_field">
             <button id="sendBtn" disabled>Send</button>
         </div>
 
@@ -195,7 +195,8 @@
         const sendBtn = document.getElementById('sendBtn');
         const statusEl = document.getElementById('status');
         const logEl = document.getElementById('log');
-
+        const inputEls = document.getElementsByClassName("input_field");
+        console.log('inputEls', inputEls)
         let ws = null;
 
         function addLog(text, kind = 'system') {
@@ -277,6 +278,17 @@
 
         } catch (err) {
             addLog('Failed to create WebSocket: ' + err.message, 'system');
+        }
+
+
+        for (const element of inputEls) {
+            element.addEventListener('blur', (event) => {
+                if (event.target.value.includes(".")) {
+                    event.target.value = (/[a-zA-Z]/.test(event.target.value)) ? 0 : Math.round(event.target.value);
+                } else {
+                    event.target.value = event.target.value.replace(/\D/g, '');
+                }
+            });
         }
 
         sendBtn.addEventListener('click', () => {
