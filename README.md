@@ -5,18 +5,20 @@ This program is a Retirement Planner/Simulator to
 help understand how your savings "nest egg" can 
 grow or not grow over time.
 
-This program uses a websocket server. From the root of this project run the following:
+This program uses a websocket server (on 127.0.0.1:3030). From the root of this project run the following:
 
 ```rust
 cargo run --release
 ```
 
-To start the web front end, (from the client folder) run the following:
+To start the web front end (from the client folder), run the following:
 
 ```rust
 cd client
 cargo run --release
 ```
+
+Open your browser to [http://127.0.0.1:8080](http://127.0.0.1:8080)
 
 
 # Github Repo
