@@ -5,9 +5,19 @@ This program is a Retirement Planner/Simulator to
 help understand how your savings "nest egg" can 
 grow or not grow over time.
 
+This program uses a websocket server. From the root of this project run the following:
+
 ```rust
 cargo run --release
 ```
+
+To start the web front end, (from the client folder) run the following:
+
+```rust
+cd client
+cargo run --release
+```
+
 
 # Github Repo
 https://github.com/rluceropdx/nest-egg-planner
