@@ -166,18 +166,20 @@
                 .attr("fill", "none")
                 .attr("stroke", "steelblue")
                 .attr("stroke-width", 2)
-                .attr("d", line);
+                .attr("d", line)
+                .transition()
+                .duration(10000);
 
             // Slow-draw animation
-            const totalLength = path.node().getTotalLength();
+            // const totalLength = path.node().getTotalLength();
 
-            path
-                .attr("stroke-dasharray", totalLength + " " + totalLength)
-                .attr("stroke-dashoffset", totalLength)
-                .transition()
-                .duration(10000)   // 🎬 3 seconds — adjust speed here
-                .ease(d3.easeLinear)
-                .attr("stroke-dashoffset", 0);
+            // path
+            //     .attr("stroke-dasharray", totalLength + " " + totalLength)
+            //     .attr("stroke-dashoffset", totalLength)
+            //     .transition()
+            //     .duration(10000)   // 🎬 3 seconds — adjust speed here
+            //     .ease(d3.easeLinear)
+            //     .attr("stroke-dashoffset", 0);
 
         }
 
