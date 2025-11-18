@@ -193,7 +193,7 @@ async fn handle_connection(websocket: warp::ws::WebSocket) {
                                         year: i,
                                         age: calc_age,
                                         savings: calc_savings,
-                                        ss_payment: ss_payment,
+                                        ss_payment,
                                         expenses: (retirement_exp - rmd),
                                         rmd_withdrawal: rmd,
                                     };
