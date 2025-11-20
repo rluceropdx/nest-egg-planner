@@ -21,6 +21,15 @@ cargo run --release
 Open your browser to [http://127.0.0.1:8080](http://127.0.0.1:8080)
 
 
+# Usage
+Clicking on send calls the server to calculate the savings across retirement.
+
+![alt text](./Screenshot-1.png)
+![alt text](./Screenshot-2.png)
+![alt text](./Screenshot-3.png)
+![alt text](./Screenshot-4.png)
+
+
 # Github Repo
 https://github.com/rluceropdx/nest-egg-planner
 
