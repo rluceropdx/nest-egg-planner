@@ -116,7 +116,22 @@
         <div class="row">
             <label>Expenses During Retirement (whole dollars)</label>
             <input type="text" id="retirement_expenses" value="45000" class="input_field">
-            <button id="sendBtn" disabled>Send</button>
+            <button id="calcBtn" disabled>Calc</button>
+        </div>
+
+        <div class="row">
+            <label>Assumptions (in calculation)</label>
+            <ul>
+                <li>REQUIRED MINIMUM DISTRIBUTIONS: assume 75% of savings are from pre-tax contributions and as a result
+                    are subject to required minimum distributions starting at age 73</li>
+                <li>INVESTMENT GROWTH: assume 100% of savings is invested in an S&P 500 Index Fund and follows the
+                    historical annual growth returns randomly selected and applied from years 1926 through 2024</li>
+                <li>SOCIAL SECURITY PAYMENTS: calculations are rough estimates and don't reflect a true worker's
+                    fluctuating earnings over 40 or more credits of work</li>
+                <li>ANNUAL INFLATION: is NOT included for any of the facets of the calculation. This is to provide a
+                    simple example of the power of compound intestest in savings and expenses over time with the hope to
+                    motive young adults to start saving early and consistently until retirement age.</li>
+            </ul>
         </div>
 
         <div class="row">
@@ -194,7 +209,7 @@
         const savingsInput = document.getElementById('current_savings');
         const salaryInput = document.getElementById('current_salary');
         const retirementExpInput = document.getElementById('retirement_expenses');
-        const sendBtn = document.getElementById('sendBtn');
+        const calcBtn = document.getElementById('calcBtn');
         const statusEl = document.getElementById('status');
         const logEl = document.getElementById('log');
         const inputEls = document.getElementsByClassName("input_field");
@@ -246,7 +261,7 @@
             ws.addEventListener('open', (ev) => {
                 setStatus('Connected to ' + url, '#10b981');
                 addLog('Connection opened', 'system');
-                sendBtn.disabled = false;
+                calcBtn.disabled = false;
             });
 
             ws.addEventListener('message', (event) => {
@@ -269,7 +284,7 @@
                 addLog(`Closed (code: ${ev.code}, reason: ${ev.reason || 'none'})`, 'system');
                 setStatus('Disconnected', '#ef4444');
                 ws = null;
-                sendBtn.disabled = true;
+                calcBtn.disabled = true;
             });
 
             ws.addEventListener('error', (err) => {
@@ -293,7 +308,7 @@
             });
         }
 
-        sendBtn.addEventListener('click', () => {
+        calcBtn.addEventListener('click', () => {
             if (!ws || ws.readyState !== WebSocket.OPEN) { addLog('Socket is not open', 'system'); return; }
 
             let value = `{  "action":"simulate", 
