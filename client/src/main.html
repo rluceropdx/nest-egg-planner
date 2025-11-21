@@ -91,6 +91,11 @@
             font-size: 13px;
             color: #374151;
         }
+
+        .assumptions {
+            font-style: italic;
+            font-size: x-small;
+        }
     </style>
 </head>
 
@@ -119,9 +124,9 @@
             <button id="calcBtn" disabled>Calc</button>
         </div>
 
-        <div class="row">
+        <div class="row" style="display: block !important;">
             <label>Assumptions (in calculation)</label>
-            <ul>
+            <ul class="assumptions">
                 <li>REQUIRED MINIMUM DISTRIBUTIONS: assume 75% of savings are from pre-tax contributions and as a result
                     are subject to required minimum distributions starting at age 73</li>
                 <li>INVESTMENT GROWTH: assume 100% of savings is invested in an S&P 500 Index Fund and follows the
@@ -213,23 +218,12 @@
         const statusEl = document.getElementById('status');
         const logEl = document.getElementById('log');
         const inputEls = document.getElementsByClassName("input_field");
-        console.log('inputEls', inputEls)
         let ws = null;
 
         function addLog(text, kind = 'system') {
             const el = document.createElement('div');
             el.className = 'msg ' + (kind === 'incoming' ? 'incoming' : kind === 'outgoing' ? 'outgoing' : 'system');
             const time = new Date().toLocaleTimeString();
-
-            try {
-                const serverData = JSON.parse(text);
-                if (serverData.hasOwnProperty('result')) {
-                    console.log('serverData result', serverData.result);
-                }
-            } catch (e) {
-                console.log('error parsing json', e);
-            }
-
 
             el.innerHTML = `<div class="meta">${time} — ${kind.toUpperCase()}</div><div>${escapeHtml(text)}</div>`;
             logEl.appendChild(el);
@@ -271,6 +265,7 @@
                         redraw(server_data.results.processed);
                     }
                 } catch (e) {
+                    addLog('Error parsing event.data', 'system');
                     console.log('error parsing event.data', e)
                 }
 
@@ -289,7 +284,6 @@
 
             ws.addEventListener('error', (err) => {
                 addLog('WebSocket error (see console)', 'system');
-                console.error('WebSocket error', err);
                 setStatus('Error', '#b91c1c');
             });
 
